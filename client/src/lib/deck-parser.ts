@@ -41,10 +41,24 @@ export class DeckParser {
           // Auto-categorize based on card type if not in a specific section
           if (currentSection === "nonlands") {
             const typeLine = card.type_line.toLowerCase();
-            if (typeLine.includes("land")) {
+            
+            // Check if it's a double-faced card with both land and non-land types
+            const hasLandType = typeLine.includes("land");
+            const hasNonLandType = typeLine.includes("creature") || 
+                                 typeLine.includes("artifact") || 
+                                 typeLine.includes("enchantment") || 
+                                 typeLine.includes("planeswalker") || 
+                                 typeLine.includes("instant") || 
+                                 typeLine.includes("sorcery");
+            
+            // If card has both land and non-land types (double-faced), keep in nonlands
+            if (hasLandType && hasNonLandType) {
+              targetBlock = "nonlands";
+            } else if (hasLandType && !hasNonLandType) {
+              // Pure land cards go to lands block
               targetBlock = "lands";
-            } else if (typeLine.includes("legendary") && typeLine.includes("creature")) {
-              // Potential commander, but keep in nonlands unless explicitly in commander section
+            } else {
+              // All other cards stay in nonlands
               targetBlock = "nonlands";
             }
           }
