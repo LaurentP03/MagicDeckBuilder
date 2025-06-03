@@ -224,9 +224,12 @@ export function useDeckBuilder(initialDeck?: MTGDeck) {
         return;
       }
 
-      const deckCards = await DeckParser.parseDeckList(text);
+      const organizedCards = await DeckParser.parseDeckList(text);
       
-      if (deckCards.length === 0) {
+      // Check if any cards were found
+      const allCardArrays = Object.values(organizedCards);
+      const totalCardTypes = allCardArrays.reduce((sum, blockCards) => sum + blockCards.length, 0);
+      if (totalCardTypes === 0) {
         toast({
           title: "No cards found",
           description: "No valid cards were found in the imported text.",
@@ -236,17 +239,19 @@ export function useDeckBuilder(initialDeck?: MTGDeck) {
       }
 
       // Calculate total cards
-      const totalCards = deckCards.reduce((sum, card) => sum + card.quantity, 0);
+      const totalCards = allCardArrays
+        .flat()
+        .reduce((sum, card) => sum + card.quantity, 0);
       
-      // Clear existing cards and add imported cards to first block
+      // Update blocks with organized cards
       setDeck(prev => {
-        const newBlocks = [...prev.blocks];
-        if (newBlocks.length > 0) {
-          newBlocks[0] = { 
-            ...newBlocks[0], 
-            cards: deckCards.map(card => ({ ...card, blockId: newBlocks[0].id }))
+        const newBlocks = prev.blocks.map(block => {
+          const blockCards = organizedCards[block.id] || [];
+          return {
+            ...block,
+            cards: blockCards.map(card => ({ ...card, blockId: block.id }))
           };
-        }
+        });
 
         return {
           ...prev,
@@ -258,7 +263,7 @@ export function useDeckBuilder(initialDeck?: MTGDeck) {
 
       toast({
         title: "Deck imported",
-        description: `Successfully imported ${deckCards.length} different cards (${totalCards} total).`,
+        description: `Successfully imported ${totalCardTypes} different cards (${totalCards} total).`,
       });
     } catch (error) {
       console.error("Import deck error:", error);

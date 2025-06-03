@@ -2,13 +2,27 @@ import { ScryfallAPI } from "./scryfall-api";
 import { DeckCard, ScryfallCard } from "@/types/mtg";
 
 export class DeckParser {
-  static async parseDeckList(text: string): Promise<DeckCard[]> {
+  static async parseDeckList(text: string): Promise<{ [blockId: string]: DeckCard[] }> {
     const lines = text.split("\n").map(line => line.trim()).filter(line => line);
-    const deckCards: DeckCard[] = [];
+    const organizedCards: { [blockId: string]: DeckCard[] } = {
+      commanders: [],
+      nonlands: [],
+      lands: [],
+      maybeboard: []
+    };
+    
+    let currentSection = "nonlands"; // Default section
     
     for (const line of lines) {
-      // Skip comments
+      // Check for section headers
       if (line.startsWith("//") || line.startsWith("#")) {
+        const sectionName = line.replace(/^(\/\/|#)\s*/, "").toLowerCase().trim();
+        
+        if (sectionName.includes("commander")) {
+          currentSection = "commanders";
+        } else if (sectionName.includes("outside") || sectionName.includes("sideboard") || sectionName.includes("maybe")) {
+          currentSection = "maybeboard";
+        }
         continue;
       }
       
@@ -20,9 +34,25 @@ export class DeckParser {
         
         try {
           const card = await ScryfallAPI.getCardByName(cardName);
-          deckCards.push({
+          
+          // Determine which block the card should go to
+          let targetBlock = currentSection;
+          
+          // Auto-categorize based on card type if not in a specific section
+          if (currentSection === "nonlands") {
+            const typeLine = card.type_line.toLowerCase();
+            if (typeLine.includes("land")) {
+              targetBlock = "lands";
+            } else if (typeLine.includes("legendary") && typeLine.includes("creature")) {
+              // Potential commander, but keep in nonlands unless explicitly in commander section
+              targetBlock = "nonlands";
+            }
+          }
+          
+          organizedCards[targetBlock].push({
             card,
             quantity,
+            blockId: targetBlock,
           });
         } catch (error) {
           console.warn(`Could not find card: ${cardName}`);
@@ -31,7 +61,7 @@ export class DeckParser {
       }
     }
     
-    return deckCards;
+    return organizedCards;
   }
 
   static validateDeckFormat(text: string): { isValid: boolean; errors: string[] } {
@@ -102,5 +132,11 @@ export class DeckParser {
     });
 
     return stats;
+  }
+
+  // Legacy method for backward compatibility
+  static async parseDeckListLegacy(text: string): Promise<DeckCard[]> {
+    const organizedCards = await this.parseDeckList(text);
+    return Object.values(organizedCards).flat();
   }
 }
