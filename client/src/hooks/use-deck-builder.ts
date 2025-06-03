@@ -220,28 +220,45 @@ export function useDeckBuilder(initialDeck?: MTGDeck) {
 
       const deckCards = await DeckParser.parseDeckList(text);
       
+      if (deckCards.length === 0) {
+        toast({
+          title: "No cards found",
+          description: "No valid cards were found in the imported text.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Calculate total cards
+      const totalCards = deckCards.reduce((sum, card) => sum + card.quantity, 0);
+      
       // Clear existing cards and add imported cards to first block
       setDeck(prev => {
         const newBlocks = [...prev.blocks];
         if (newBlocks.length > 0) {
-          newBlocks[0] = { ...newBlocks[0], cards: deckCards };
+          newBlocks[0] = { 
+            ...newBlocks[0], 
+            cards: deckCards.map(card => ({ ...card, blockId: newBlocks[0].id }))
+          };
         }
 
         return {
           ...prev,
           blocks: newBlocks,
+          totalCards,
           updatedAt: new Date().toISOString(),
         };
       });
 
       toast({
         title: "Deck imported",
-        description: `Successfully imported ${deckCards.length} different cards.`,
+        description: `Successfully imported ${deckCards.length} different cards (${totalCards} total).`,
       });
     } catch (error) {
+      console.error("Import deck error:", error);
       toast({
         title: "Import failed",
-        description: "Failed to import deck. Please check the format.",
+        description: "Failed to import deck. Please check the format and try again.",
         variant: "destructive",
       });
     }

@@ -1,10 +1,8 @@
 import { ScryfallCard, AutocompleteResult, ScryfallSearchResult } from "@/types/mtg";
 
-const SCRYFALL_API_BASE = "https://api.scryfall.com";
-
 export class ScryfallAPI {
   private static async request<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${SCRYFALL_API_BASE}${endpoint}`);
+    const response = await fetch(`/api/scryfall${endpoint}`);
     
     if (!response.ok) {
       throw new Error(`Scryfall API error: ${response.status} ${response.statusText}`);
@@ -18,7 +16,7 @@ export class ScryfallAPI {
     
     try {
       const result = await this.request<AutocompleteResult>(
-        `/cards/autocomplete?q=${encodeURIComponent(query)}`
+        `/autocomplete?q=${encodeURIComponent(query)}`
       );
       return result.data;
     } catch (error) {
@@ -30,7 +28,7 @@ export class ScryfallAPI {
   static async searchCards(query: string, page = 1): Promise<ScryfallSearchResult> {
     try {
       const result = await this.request<ScryfallSearchResult>(
-        `/cards/search?q=${encodeURIComponent(query)}&page=${page}&order=name`
+        `/search?q=${encodeURIComponent(query)}&page=${page}`
       );
       return result;
     } catch (error) {
@@ -42,7 +40,7 @@ export class ScryfallAPI {
   static async getCardByName(name: string): Promise<ScryfallCard> {
     try {
       const result = await this.request<ScryfallCard>(
-        `/cards/named?exact=${encodeURIComponent(name)}`
+        `/card-named?name=${encodeURIComponent(name)}`
       );
       return result;
     } catch (error) {
@@ -53,7 +51,7 @@ export class ScryfallAPI {
 
   static async getCardById(id: string): Promise<ScryfallCard> {
     try {
-      const result = await this.request<ScryfallCard>(`/cards/${id}`);
+      const result = await this.request<ScryfallCard>(`/card/${id}`);
       return result;
     } catch (error) {
       console.error("Error fetching card by ID:", error);
@@ -63,10 +61,8 @@ export class ScryfallAPI {
 
   static async getCardPrints(cardId: string): Promise<ScryfallCard[]> {
     try {
-      const result = await this.request<ScryfallSearchResult>(
-        `/cards/search?q=oracleid%3A${cardId}&unique=prints&order=released`
-      );
-      return result.data;
+      const result = await this.request<ScryfallSearchResult>(`/card-prints/${cardId}`);
+      return result.data || [];
     } catch (error) {
       console.error("Error fetching card prints:", error);
       return [];
