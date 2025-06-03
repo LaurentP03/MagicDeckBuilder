@@ -144,9 +144,9 @@ export function DeckBlock({
 
       {/* Cards Grid */}
       <div className="grid grid-cols-8 gap-2">
-        {block.cards.map((deckCard) => (
+        {block.cards.map((deckCard, index) => (
           <div
-            key={`${deckCard.card.id}-${block.id}`}
+            key={`${deckCard.card.id}-${block.id}-${index}`}
             className="card-hover cursor-pointer relative group"
             draggable
             onDragStart={(e) => onDragStart?.(e, deckCard)}
