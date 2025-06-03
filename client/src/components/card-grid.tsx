@@ -42,7 +42,7 @@ export function CardGrid({ cards, isLoading, onCardClick, className }: CardGridP
           className="card-hover cursor-pointer p-2 border-border hover:border-primary transition-all duration-200"
           onClick={() => onCardClick?.(card)}
         >
-          <div className="aspect-[5/7] mb-2 overflow-hidden rounded-md">
+          <div className="aspect-[5/7] overflow-hidden rounded-md">
             <img
               src={ScryfallAPI.getCardImageUrl(card, 'normal')}
               alt={card.name}
@@ -50,10 +50,6 @@ export function CardGrid({ cards, isLoading, onCardClick, className }: CardGridP
               loading="lazy"
             />
           </div>
-          <h3 className="text-sm font-medium text-center line-clamp-2">{card.name}</h3>
-          <p className="text-xs text-muted-foreground text-center mt-1">
-            {card.mana_cost || "—"}
-          </p>
         </Card>
       ))}
     </div>
