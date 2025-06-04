@@ -15,17 +15,12 @@ cd MagicDeckBuilder
 npm install
 ```
 
-3. Corrija o script "dev" no `package.json`, se necessário:
-```json
-"dev": "cross-env NODE_ENV=development tsx server/index.ts"
-```
-
-4. Instale o cross-env:
+3. Instale o cross-env:
 ```bash
 npm install --save-dev cross-env
 ```
 
-5. Rode o projeto:
+4. Rode o projeto:
 ```bash
 npm run dev
 ```
