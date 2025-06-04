@@ -25,4 +25,4 @@ npm install --save-dev cross-env
 npm run dev
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000) no navegador.
+Acesse [http://localhost:5000](http://localhost:5000) no navegador.
